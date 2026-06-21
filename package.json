@@ -1,0 +1,28 @@
+{
+  "name": "prokuro-infrastructure-cdk",
+  "version": "0.1.0",
+  "bin": {
+    "app": "build/bin/app.js"
+  },
+  "scripts": {
+    "clean": "rm -rf build cdk.out",
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "deploy": "cdk deploy",
+    "diff": "cdk diff"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "aws-cdk": "^2.170.0",
+    "dotenv": "^17.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-amplify-alpha": "^2.170.0-alpha.0",
+    "aws-cdk-lib": "^2.170.0",
+    "constructs": "^10.4.2"
+  }
+}
