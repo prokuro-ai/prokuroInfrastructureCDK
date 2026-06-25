@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import { loadConfig, ProkuroConfig } from './config';
 import { AmplifyWeb } from './constructs/amplify-web';
 import { Backend } from './constructs/backend';
+import { CognitoAuth } from './constructs/cognito-auth';
 
 export interface ProkuroStackProps extends StackProps {
   /** Override env-based config */
@@ -28,10 +29,15 @@ export class ProkuroStack extends Stack {
       nexarClientSecret: config.nexarClientSecret,
     });
 
+    const cognito = new CognitoAuth(this, 'Auth');
+
     const web = new AmplifyWeb(this, 'Web', {
       gatewayUrl: backend.gatewayUrl,
       domainName: config.domainName,
       githubToken: config.githubToken,
+      cognitoUserPoolId: cognito.userPoolId,
+      cognitoClientId: cognito.userPoolClientId,
+      cognitoRegion: this.region,
     });
 
     this.gatewayUrl = backend.gatewayUrl;
