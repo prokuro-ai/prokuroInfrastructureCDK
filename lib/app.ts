@@ -12,8 +12,7 @@ export interface ProkuroStackProps extends StackProps {
 
 /**
  * Single deployable unit for all Prokuro AWS infrastructure:
- * Rust backend (ECS) + prokuroWeb (Amplify). An internet-facing ALB is used to expose the gateway service 
- * for serving the web app.
+ * Rust backend (ECS) + Cognito + prokuroWeb (Amplify).
  */
 export class ProkuroStack extends Stack {
   readonly gatewayUrl: string;

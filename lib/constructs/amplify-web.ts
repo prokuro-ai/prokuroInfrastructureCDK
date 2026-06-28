@@ -15,7 +15,6 @@ import {
   PRODUCTION_BRANCH,
 } from '../config';
 
-
 class GitHubAppSourceCodeProvider implements ISourceCodeProvider {
   constructor(
     private readonly owner: string,
