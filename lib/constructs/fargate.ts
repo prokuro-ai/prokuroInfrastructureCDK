@@ -9,7 +9,7 @@ import {
   LogDrivers,
   Secret,
 } from 'aws-cdk-lib/aws-ecs';
-import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { PolicyStatement, IRole } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
@@ -19,6 +19,10 @@ export interface FargateBackendProps {
   vpc: IVpc;
   images: BackendImages;
   nexarSecret: ISecret;
+  bomBucketName?: string;
+  cognitoUserPoolId?: string;
+  cognitoClientId?: string;
+  cognitoRegion?: string;
 }
 
 /**
@@ -28,6 +32,7 @@ export interface FargateBackendProps {
 export class FargateBackend extends Construct {
   readonly cluster: Cluster;
   readonly service: FargateService;
+  readonly taskRole: IRole;
 
   constructor(scope: Construct, id: string, props: FargateBackendProps) {
     super(scope, id);
@@ -38,9 +43,11 @@ export class FargateBackend extends Construct {
     });
 
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDef', {
-      memoryLimitMiB: 2048,
-      cpu: 1024,
+      memoryLimitMiB: 1024,
+      cpu: 512,
     });
+
+    this.taskRole = taskDefinition.taskRole;
 
     taskDefinition.addToExecutionRolePolicy(
       new PolicyStatement({
@@ -87,16 +94,25 @@ export class FargateBackend extends Construct {
       logging: logDriverFor('enrichment'),
     });
 
+    const gatewayEnv: Record<string, string> = {
+      PORT: '3000',
+      PARSER_URL: 'http://127.0.0.1:3001',
+      ENRICHMENT_URL: 'http://127.0.0.1:3002',
+    };
+    if (props.bomBucketName) gatewayEnv.BOM_BUCKET_NAME = props.bomBucketName;
+    if (props.cognitoUserPoolId) gatewayEnv.COGNITO_USER_POOL_ID = props.cognitoUserPoolId;
+    if (props.cognitoClientId) gatewayEnv.COGNITO_CLIENT_ID = props.cognitoClientId;
+    if (props.cognitoRegion) {
+      gatewayEnv.COGNITO_REGION = props.cognitoRegion;
+      gatewayEnv.AWS_REGION = props.cognitoRegion;
+    }
+
     const gatewayContainer = taskDefinition.addContainer('gateway', {
       containerName: 'gateway',
       image: ContainerImage.fromDockerImageAsset(props.images.gateway),
       essential: true,
       portMappings: [{ containerPort: 3000 }],
-      environment: {
-        PORT: '3000',
-        PARSER_URL: 'http://127.0.0.1:3001',
-        ENRICHMENT_URL: 'http://127.0.0.1:3002',
-      },
+      environment: gatewayEnv,
       logging: logDriverFor('gateway'),
     });
 

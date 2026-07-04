@@ -25,7 +25,8 @@ export class CognitoAuth extends Construct {
       autoVerify: { email: true },
       standardAttributes: {
         email: { required: true, mutable: true },
-        fullname: { required: false, mutable: true },
+        givenName: { required: true, mutable: true },
+        familyName: { required: true, mutable: true },
       },
       customAttributes: {
         company: new StringAttribute({ mutable: true }),

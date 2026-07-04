@@ -3,7 +3,8 @@ import { Construct } from 'constructs';
 import { loadConfig, ProkuroConfig } from './config';
 import { AmplifyWeb } from './constructs/amplify-web';
 import { Backend } from './constructs/backend';
-import { CognitoAuth } from './constructs/cognito-auth';
+import { BomStorage } from './constructs/bom-storage';
+import { CognitoAuth } from './constructs/auth';
 
 export interface ProkuroStackProps extends StackProps {
   /** Override env-based config */
@@ -23,16 +24,22 @@ export class ProkuroStack extends Stack {
 
     const config = props?.config ?? loadConfig();
 
+    const cognito = new CognitoAuth(this, 'Auth');
+    const bomStorage = new BomStorage(this, 'BomStorage');
+
     const backend = new Backend(this, 'Backend', {
       nexarClientId: config.nexarClientId,
       nexarClientSecret: config.nexarClientSecret,
+      bomBucketName: bomStorage.bucketName,
+      cognitoUserPoolId: cognito.userPoolId,
+      cognitoClientId: cognito.userPoolClientId,
+      cognitoRegion: this.region,
     });
 
-    const cognito = new CognitoAuth(this, 'Auth');
+    bomStorage.grantReadWrite(backend.taskRole);
 
     const web = new AmplifyWeb(this, 'Web', {
       gatewayUrl: backend.gatewayUrl,
-      domainName: config.domainName,
       githubToken: config.githubToken,
       cognitoUserPoolId: cognito.userPoolId,
       cognitoClientId: cognito.userPoolClientId,
@@ -44,7 +51,7 @@ export class ProkuroStack extends Stack {
 
     new CfnOutput(this, 'ProkuroSummary', {
       value: `gateway=${backend.gatewayUrl} web=${web.defaultUrl}`,
-      description: 'Quick reference — gateway and Amplify URLs',
+      description: 'Gateway and Amplify URLs',
     });
   }
 }

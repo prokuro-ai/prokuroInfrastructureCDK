@@ -4,8 +4,7 @@ import {
   Platform,
   SourceCodeProviderConfig,
 } from '@aws-cdk/aws-amplify-alpha';
-import { CfnDomain } from 'aws-cdk-lib/aws-amplify';
-import { CfnOutput, SecretValue } from 'aws-cdk-lib';
+import { CfnOutput, RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import {
@@ -32,7 +31,6 @@ class GitHubAppSourceCodeProvider implements ISourceCodeProvider {
 
 export interface AmplifyWebProps {
   gatewayUrl?: string;
-  domainName?: string;
   githubToken?: string;
   cognitoUserPoolId?: string;
   cognitoClientId?: string;
@@ -52,6 +50,7 @@ export class AmplifyWeb extends Construct {
       ? new Secret(this, 'GitHubToken', {
           secretName: GITHUB_SECRET_NAME,
           description: 'GitHub PAT for Amplify to access prokuroWeb',
+          removalPolicy: RemovalPolicy.DESTROY,
           secretStringValue: SecretValue.unsafePlainText(githubToken),
         })
       : Secret.fromSecretNameV2(
@@ -101,24 +100,6 @@ export class AmplifyWeb extends Construct {
 
     this.appId = amplifyApp.appId;
     this.defaultUrl = `https://${PRODUCTION_BRANCH}.${amplifyApp.appId}.amplifyapp.com`;
-
-    const domainName = props.domainName;
-    if (domainName) {
-      const domain = new CfnDomain(this, 'Domain', {
-        appId: amplifyApp.appId,
-        domainName,
-        subDomainSettings: [
-          { branchName: PRODUCTION_BRANCH, prefix: '' },
-          { branchName: PRODUCTION_BRANCH, prefix: 'www' },
-        ],
-      });
-      domain.node.addDependency(productionBranch);
-
-      new CfnOutput(this, 'CustomDomain', {
-        value: `https://${domainName}`,
-        description: 'Production URL after DNS is updated',
-      });
-    }
 
     new CfnOutput(this, 'AmplifyAppId', {
       value: amplifyApp.appId,

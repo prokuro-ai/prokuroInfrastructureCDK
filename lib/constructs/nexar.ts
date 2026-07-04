@@ -1,4 +1,4 @@
-import { SecretValue } from 'aws-cdk-lib';
+import { RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import { NEXAR_SECRET_NAME } from '../config';
@@ -21,6 +21,7 @@ export class NexarSecret extends Construct {
       this.secret = new Secret(this, 'Secret', {
         secretName: NEXAR_SECRET_NAME,
         description: 'Nexar API credentials for prokuro-enrichment',
+        removalPolicy: RemovalPolicy.DESTROY,
         secretObjectValue: {
           NEXAR_CLIENT_ID: SecretValue.unsafePlainText(clientId!),
           NEXAR_CLIENT_SECRET: SecretValue.unsafePlainText(clientSecret!),

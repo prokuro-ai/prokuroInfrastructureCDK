@@ -1,7 +1,8 @@
 import { CfnOutput } from 'aws-cdk-lib';
+import { IRole } from 'aws-cdk-lib/aws-iam';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
-import { BackendAlb } from './backend-alb';
+import { BackendAlb } from './alb';
 import { BackendImages } from './images';
 import { FargateBackend } from './fargate';
 import { NexarSecret } from './nexar';
@@ -9,11 +10,16 @@ import { NexarSecret } from './nexar';
 export interface BackendProps {
   nexarClientId?: string;
   nexarClientSecret?: string;
+  bomBucketName?: string;
+  cognitoUserPoolId?: string;
+  cognitoClientId?: string;
+  cognitoRegion?: string;
 }
 
 /** Rust backend: parser + enrichment + gateway + ... on ECS Fargate behind an ALB. */
 export class Backend extends Construct {
   readonly gatewayUrl: string;
+  readonly taskRole: IRole;
 
   constructor(scope: Construct, id: string, props: BackendProps) {
     super(scope, id);
@@ -31,7 +37,13 @@ export class Backend extends Construct {
       vpc,
       images,
       nexarSecret: nexarSecret.secret,
+      bomBucketName: props.bomBucketName,
+      cognitoUserPoolId: props.cognitoUserPoolId,
+      cognitoClientId: props.cognitoClientId,
+      cognitoRegion: props.cognitoRegion,
     });
+
+    this.taskRole = fargate.taskRole;
 
     const secretResource = nexarSecret.secret.node.defaultChild;
     if (secretResource) {
