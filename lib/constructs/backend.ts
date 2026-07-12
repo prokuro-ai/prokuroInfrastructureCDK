@@ -16,7 +16,7 @@ export interface BackendProps {
   cognitoRegion?: string;
 }
 
-/** Rust backend: parser + enrichment + gateway + ... on ECS Fargate behind an ALB. */
+/** Rust backend: parser + enrichment + tariff + gateway on ECS Fargate behind an ALB. */
 export class Backend extends Construct {
   readonly gatewayUrl: string;
   readonly taskRole: IRole;

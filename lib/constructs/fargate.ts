@@ -26,7 +26,7 @@ export interface FargateBackendProps {
 }
 
 /**
- * ECS cluster + single Fargate task (gateway, parser, enrichment containers).
+ * ECS cluster + single Fargate task (gateway, parser, enrichment, tariff).
  * Containers communicate via localhost inside the task. Same as docker-compose.
  */
 export class FargateBackend extends Construct {
@@ -42,8 +42,10 @@ export class FargateBackend extends Construct {
       clusterName: 'prokuro-backend',
     });
 
+    // No per-container cpu/memory reservations — containers share the task pool.
+    // 512/1024 was sized for three sidecars; bump memory for a fourth (tariff is light).
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDef', {
-      memoryLimitMiB: 1024,
+      memoryLimitMiB: 2048,
       cpu: 512,
     });
 
@@ -94,10 +96,20 @@ export class FargateBackend extends Construct {
       logging: logDriverFor('enrichment'),
     });
 
+    const tariffContainer = taskDefinition.addContainer('tariff', {
+      containerName: 'tariff',
+      image: ContainerImage.fromDockerImageAsset(props.images.tariff),
+      essential: true,
+      portMappings: [{ containerPort: 3003 }],
+      environment: { PORT: '3003' },
+      logging: logDriverFor('tariff'),
+    });
+
     const gatewayEnv: Record<string, string> = {
       PORT: '3000',
       PARSER_URL: 'http://127.0.0.1:3001',
       ENRICHMENT_URL: 'http://127.0.0.1:3002',
+      TARIFF_URL: 'http://127.0.0.1:3003',
     };
     if (props.bomBucketName) gatewayEnv.BOM_BUCKET_NAME = props.bomBucketName;
     if (props.cognitoUserPoolId) gatewayEnv.COGNITO_USER_POOL_ID = props.cognitoUserPoolId;
@@ -123,6 +135,10 @@ export class FargateBackend extends Construct {
       },
       {
         container: enrichmentContainer,
+        condition: ContainerDependencyCondition.START,
+      },
+      {
+        container: tariffContainer,
         condition: ContainerDependencyCondition.START,
       },
     );

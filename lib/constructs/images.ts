@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { BACKEND_DIR } from '../config';
 
 /**
- * ECS container images for the Rust backend (parser, enrichment, gateway).
+ * ECS container images for the Rust backend (parser, enrichment, tariff, gateway).
  *
  * ## Current: DockerImageAsset (local build at deploy time)
  *
@@ -37,6 +37,7 @@ import { BACKEND_DIR } from '../config';
 export class BackendImages extends Construct {
   readonly parser: DockerImageAsset;
   readonly enrichment: DockerImageAsset;
+  readonly tariff: DockerImageAsset;
   readonly gateway: DockerImageAsset;
 
   constructor(scope: Construct, id: string) {
@@ -50,6 +51,11 @@ export class BackendImages extends Construct {
     this.enrichment = new DockerImageAsset(this, 'Enrichment', {
       directory: BACKEND_DIR,
       file: 'docker/enrichment.Dockerfile',
+    });
+
+    this.tariff = new DockerImageAsset(this, 'Tariff', {
+      directory: BACKEND_DIR,
+      file: 'docker/tariff.Dockerfile',
     });
 
     this.gateway = new DockerImageAsset(this, 'Gateway', {
