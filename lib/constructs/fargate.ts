@@ -26,7 +26,7 @@ export interface FargateBackendProps {
 }
 
 /**
- * ECS cluster + single Fargate task (gateway, parser, enrichment, tariff).
+ * ECS cluster + single Fargate task (gateway, parser, enrichment, tariff containers).
  * Containers communicate via localhost inside the task. Same as docker-compose.
  */
 export class FargateBackend extends Construct {
@@ -42,8 +42,6 @@ export class FargateBackend extends Construct {
       clusterName: 'prokuro-backend',
     });
 
-    // No per-container cpu/memory reservations — containers share the task pool.
-    // 512/1024 was sized for three sidecars; bump memory for a fourth (tariff is light).
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDef', {
       memoryLimitMiB: 2048,
       cpu: 512,
@@ -58,15 +56,15 @@ export class FargateBackend extends Construct {
       }),
     );
 
-    const logDriverFor = (containerName: string) =>
-      LogDrivers.awsLogs({
-        streamPrefix: containerName,
-        logGroup: new LogGroup(this, `${containerName}LogGroup`, {
-          logGroupName: `/prokuro/backend/${containerName}`,
-          retention: RetentionDays.ONE_DAY,
-          removalPolicy: RemovalPolicy.DESTROY,
-        }),
-      });
+    // const logDriverFor = (containerName: string) =>
+    //   LogDrivers.awsLogs({
+    //     streamPrefix: containerName,
+    //     logGroup: new LogGroup(this, `${containerName}LogGroup`, {
+    //       logGroupName: `/prokuro/backend/${containerName}`,
+    //       retention: RetentionDays.ONE_DAY,
+    //       removalPolicy: RemovalPolicy.DESTROY,
+    //     }),
+    //   });
 
     const parserContainer = taskDefinition.addContainer('parser', {
       containerName: 'parser',
@@ -74,7 +72,7 @@ export class FargateBackend extends Construct {
       essential: true,
       portMappings: [{ containerPort: 3001 }],
       environment: { PORT: '3001' },
-      logging: logDriverFor('parser'),
+      // logging: logDriverFor('parser'),
     });
 
     const enrichmentContainer = taskDefinition.addContainer('enrichment', {
@@ -93,7 +91,7 @@ export class FargateBackend extends Construct {
           'NEXAR_CLIENT_SECRET',
         ),
       },
-      logging: logDriverFor('enrichment'),
+      // logging: logDriverFor('enrichment'),
     });
 
     const tariffContainer = taskDefinition.addContainer('tariff', {
@@ -102,7 +100,7 @@ export class FargateBackend extends Construct {
       essential: true,
       portMappings: [{ containerPort: 3003 }],
       environment: { PORT: '3003' },
-      logging: logDriverFor('tariff'),
+      // logging: logDriverFor('tariff'),
     });
 
     const gatewayEnv: Record<string, string> = {
@@ -125,7 +123,7 @@ export class FargateBackend extends Construct {
       essential: true,
       portMappings: [{ containerPort: 3000 }],
       environment: gatewayEnv,
-      logging: logDriverFor('gateway'),
+      // logging: logDriverFor('gateway'),
     });
 
     gatewayContainer.addContainerDependencies(

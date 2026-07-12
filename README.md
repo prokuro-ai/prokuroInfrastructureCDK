@@ -20,7 +20,7 @@ npx cdk bootstrap aws://713463138528/us-west-2   # once
 npx cdk deploy Prokuro
 ```
 
-First deploy builds three backend Docker images — allow 10–20 minutes.
+First deploy builds four backend Docker images — allow 10–20 minutes.
 
 **`.env` (first deploy only):**
 
