@@ -28,8 +28,8 @@ export class ProkuroStack extends Stack {
     const bomStorage = new BomStorage(this, 'BomStorage');
 
     const backend = new Backend(this, 'Backend', {
-      nexarClientId: config.nexarClientId,
-      nexarClientSecret: config.nexarClientSecret,
+      digikeyClientId: config.digikeyClientId,
+      digikeyClientSecret: config.digikeyClientSecret,
       bomBucketName: bomStorage.bucketName,
       cognitoUserPoolId: cognito.userPoolId,
       cognitoClientId: cognito.userPoolClientId,

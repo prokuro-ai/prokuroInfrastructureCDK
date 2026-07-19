@@ -6,14 +6,15 @@ AWS CDK for Prokuro — one stack (`Prokuro`): Rust backend on ECS Fargate + Cog
 
 - AWS CLI (`prokuro` profile), Node.js 22+, Docker Desktop
 - GitHub PAT with `repo` scope for `prokuro-ai/prokuroWeb` (first deploy only)
-- Nexar credentials — first backend deploy only
+- Digi-Key credentials — first backend deploy only
+
 
 ## Deploy
 
 ```bash
 cd prokuroInfrastructureCDK
 npm install
-cp .env.example .env   # fill in GITHUB_TOKEN + Nexar secrets for first deploy
+cp .env.example .env   # fill in GITHUB_TOKEN + Digi-Key secrets for first deploy
 export AWS_PROFILE=prokuro
 npm run build
 npx cdk bootstrap aws://713463138528/us-west-2   # once
@@ -27,10 +28,10 @@ First deploy builds four backend Docker images — allow 10–20 minutes.
 | Variable | Purpose |
 |----------|---------|
 | `GITHUB_TOKEN` | Amplify GitHub access → stored in Secrets Manager |
-| `NEXAR_CLIENT_ID` / `NEXAR_CLIENT_SECRET` | Backend enrichment → stored in Secrets Manager |
+| `DIGIKEY_CLIENT_ID` / `DIGIKEY_CLIENT_SECRET` | Backend enrichment → stored in Secrets Manager |
 | `DOMAIN_NAME` | Optional custom domain on Amplify |
 
-After the first successful deploy, remove `GITHUB_TOKEN` and `NEXAR_*` from `.env`. CDK reads the existing Secrets Manager entries on subsequent deploys.
+After the first successful deploy, remove `GITHUB_TOKEN` and `DIGIKEY_*` from `.env`. CDK reads the existing Secrets Manager entries on subsequent deploys.
 
 CDK creates the Amplify app, connects `prokuro-ai/prokuroWeb` on branch `main`, and wires branch env vars (`GATEWAY_URL`, `NEXT_PUBLIC_COGNITO_*`).
 
@@ -38,4 +39,15 @@ CDK creates the Amplify app, connects `prokuro-ai/prokuroWeb` on branch `main`, 
 
 ## Outputs
 
-`GatewayUrl`, `AmplifyDefaultUrl`, Cognito IDs.
+`GatewayUrl`, `AmplifyDefaultUrl`, Cognito IDs, `PartsTableName`, `UnresolvedTableName`.
+
+## DynamoDB (enrichment)
+
+CDK provisions:
+
+| Table | Keys |
+|-------|------|
+| `prokuro-parts` | PK `pk`, SK `fetched_at` |
+| `prokuro-unresolved` | PK `pk`, SK `first_seen` |
+
+Enrichment on Fargate gets `PARTS_TABLE` / `UNRESOLVED_TABLE` and IAM read/write on both.

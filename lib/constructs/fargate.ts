@@ -18,7 +18,9 @@ import { BackendImages } from './images';
 export interface FargateBackendProps {
   vpc: IVpc;
   images: BackendImages;
-  nexarSecret: ISecret;
+  digikeySecret: ISecret;
+  partsTableName: string;
+  unresolvedTableName: string;
   bomBucketName?: string;
   cognitoUserPoolId?: string;
   cognitoClientId?: string;
@@ -52,7 +54,7 @@ export class FargateBackend extends Construct {
     taskDefinition.addToExecutionRolePolicy(
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
-        resources: [props.nexarSecret.secretArn],
+        resources: [props.digikeySecret.secretArn],
       }),
     );
 
@@ -80,15 +82,20 @@ export class FargateBackend extends Construct {
       image: ContainerImage.fromDockerImageAsset(props.images.enrichment),
       essential: true,
       portMappings: [{ containerPort: 3002 }],
-      environment: { PORT: '3002' },
+      environment: {
+        PORT: '3002',
+        AWS_REGION: props.cognitoRegion ?? 'us-west-2',
+        PARTS_TABLE: props.partsTableName,
+        UNRESOLVED_TABLE: props.unresolvedTableName,
+      },
       secrets: {
-        NEXAR_CLIENT_ID: Secret.fromSecretsManager(
-          props.nexarSecret,
-          'NEXAR_CLIENT_ID',
+        DIGIKEY_CLIENT_ID: Secret.fromSecretsManager(
+          props.digikeySecret,
+          'DIGIKEY_CLIENT_ID',
         ),
-        NEXAR_CLIENT_SECRET: Secret.fromSecretsManager(
-          props.nexarSecret,
-          'NEXAR_CLIENT_SECRET',
+        DIGIKEY_CLIENT_SECRET: Secret.fromSecretsManager(
+          props.digikeySecret,
+          'DIGIKEY_CLIENT_SECRET',
         ),
       },
       // logging: logDriverFor('enrichment'),

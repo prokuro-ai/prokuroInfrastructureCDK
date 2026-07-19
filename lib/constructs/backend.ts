@@ -4,12 +4,13 @@ import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { BackendAlb } from './alb';
 import { BackendImages } from './images';
+import { DigiKeySecret } from './digikey';
 import { FargateBackend } from './fargate';
-import { NexarSecret } from './nexar';
+import { PartsStorage } from './parts-storage';
 
 export interface BackendProps {
-  nexarClientId?: string;
-  nexarClientSecret?: string;
+  digikeyClientId?: string;
+  digikeyClientSecret?: string;
   bomBucketName?: string;
   cognitoUserPoolId?: string;
   cognitoClientId?: string;
@@ -20,23 +21,28 @@ export interface BackendProps {
 export class Backend extends Construct {
   readonly gatewayUrl: string;
   readonly taskRole: IRole;
+  readonly partsStorage: PartsStorage;
 
   constructor(scope: Construct, id: string, props: BackendProps) {
     super(scope, id);
 
     const vpc = Vpc.fromLookup(this, 'Vpc', { isDefault: true });
 
-    const nexarSecret = new NexarSecret(this, 'NexarSecret', {
-      clientId: props.nexarClientId,
-      clientSecret: props.nexarClientSecret,
+    const digikeySecret = new DigiKeySecret(this, 'DigiKeySecret', {
+      clientId: props.digikeyClientId,
+      clientSecret: props.digikeyClientSecret,
     });
+
+    this.partsStorage = new PartsStorage(this, 'PartsStorage');
 
     const images = new BackendImages(this, 'Images');
 
     const fargate = new FargateBackend(this, 'Fargate', {
       vpc,
       images,
-      nexarSecret: nexarSecret.secret,
+      digikeySecret: digikeySecret.secret,
+      partsTableName: this.partsStorage.partsTable.tableName,
+      unresolvedTableName: this.partsStorage.unresolvedTable.tableName,
       bomBucketName: props.bomBucketName,
       cognitoUserPoolId: props.cognitoUserPoolId,
       cognitoClientId: props.cognitoClientId,
@@ -44,8 +50,9 @@ export class Backend extends Construct {
     });
 
     this.taskRole = fargate.taskRole;
+    this.partsStorage.grantReadWrite(fargate.taskRole);
 
-    const secretResource = nexarSecret.secret.node.defaultChild;
+    const secretResource = digikeySecret.secret.node.defaultChild;
     if (secretResource) {
       fargate.service.node.addDependency(secretResource);
     }
