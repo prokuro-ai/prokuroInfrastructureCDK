@@ -6,8 +6,10 @@ import { Construct } from 'constructs';
 /**
  * DynamoDB tables for Digi-Key enrichment cache.
  *
- * - parts: append-only snapshots (pk / fetched_at)
+ * - parts: one current row per MPN key (pk / sk=CURRENT); fetched_at is an attribute
  * - unresolved: unmatched lookups (pk / first_seen)
+ *
+ * Dev stack: tables are deleted with the stack so redeploys do not hit name collisions.
  */
 export class PartsStorage extends Construct {
   readonly partsTable: Table;
@@ -19,9 +21,10 @@ export class PartsStorage extends Construct {
     this.partsTable = new Table(this, 'Parts', {
       tableName: 'prokuro-parts',
       partitionKey: { name: 'pk', type: AttributeType.STRING },
-      sortKey: { name: 'fetched_at', type: AttributeType.STRING },
+      sortKey: { name: 'sk', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
+      deletionProtection: false,
     });
 
     this.unresolvedTable = new Table(this, 'Unresolved', {
@@ -29,12 +32,13 @@ export class PartsStorage extends Construct {
       partitionKey: { name: 'pk', type: AttributeType.STRING },
       sortKey: { name: 'first_seen', type: AttributeType.STRING },
       billingMode: BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
+      deletionProtection: false,
     });
 
     new CfnOutput(this, 'PartsTableName', {
       value: this.partsTable.tableName,
-      description: 'Enrichment parts snapshot table',
+      description: 'Enrichment parts current-row table',
       exportName: 'ProkuroPartsTableName',
     });
 

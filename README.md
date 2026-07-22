@@ -47,7 +47,9 @@ CDK provisions:
 
 | Table | Keys |
 |-------|------|
-| `prokuro-parts` | PK `pk`, SK `fetched_at` |
+| `prokuro-parts` | PK `pk`, SK `sk` (`CURRENT`); attribute `fetched_at` |
 | `prokuro-unresolved` | PK `pk`, SK `first_seen` |
+
+One current row per unique MPN key (upsert). Local cargo runs use these AWS tables via the default credential chain.
 
 Enrichment on Fargate gets `PARTS_TABLE` / `UNRESOLVED_TABLE` and IAM read/write on both.
