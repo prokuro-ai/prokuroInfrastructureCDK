@@ -11,6 +11,7 @@ import {
   UserPoolClientIdentityProvider,
   UserPoolIdentityProviderGoogle,
 } from 'aws-cdk-lib/aws-cognito';
+import { EmailIdentity, Identity } from 'aws-cdk-lib/aws-ses';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 import {
@@ -28,6 +29,10 @@ export class CognitoAuth extends Construct {
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
+
+    new EmailIdentity(this, 'SenderEmailIdentity', {
+      identity: Identity.email('noreply@prokuro.ai'),
+    });
 
     this.userPool = new UserPool(this, 'UserPool', {
       userPoolName: 'prokuro-users',
