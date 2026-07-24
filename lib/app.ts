@@ -44,6 +44,7 @@ export class ProkuroStack extends Stack {
       cognitoUserPoolId: cognito.userPoolId,
       cognitoClientId: cognito.userPoolClientId,
       cognitoRegion: this.region,
+      cognitoDomain: cognito.domainName,
     });
 
     this.gatewayUrl = backend.gatewayUrl;

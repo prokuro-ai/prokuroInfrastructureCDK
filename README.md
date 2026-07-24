@@ -7,6 +7,7 @@ AWS CDK for Prokuro — one stack (`Prokuro`): Rust backend on ECS Fargate + Cog
 - AWS CLI (`prokuro` profile), Node.js 22+, Docker Desktop
 - GitHub PAT with `repo` scope for `prokuro-ai/prokuroWeb` (first deploy only)
 - Digi-Key credentials — first backend deploy only
+- Google OAuth web client — only when enabling Google sign-in
 
 
 ## Deploy
@@ -29,13 +30,21 @@ First deploy builds four backend Docker images — allow 10–20 minutes.
 |----------|---------|
 | `GITHUB_TOKEN` | Amplify GitHub access → stored in Secrets Manager |
 | `DIGIKEY_CLIENT_ID` / `DIGIKEY_CLIENT_SECRET` | Backend enrichment → stored in Secrets Manager |
-| `DOMAIN_NAME` | Optional custom domain on Amplify |
 
 After the first successful deploy, remove `GITHUB_TOKEN` and `DIGIKEY_*` from `.env`. CDK reads the existing Secrets Manager entries on subsequent deploys.
 
 CDK creates the Amplify app, connects `prokuro-ai/prokuroWeb` on branch `main`, and wires branch env vars (`GATEWAY_URL`, `NEXT_PUBLIC_COGNITO_*`).
 
 **Delete any manually created Amplify app** before deploying if you created one in the console — CDK will create `prokuro-web`.
+
+## Google sign-in
+
+1. The Cognito origin is `https://prokuro-auth.auth.us-west-2.amazoncognito.com`.
+2. In Google Cloud, create an OAuth 2.0 web client. Add the Cognito origin as an authorized JavaScript origin and `<Cognito origin>/oauth2/idpresponse` as an authorized redirect URI.
+3. Store the OAuth client in `prokuro/google/oauth` as a Secrets Manager JSON secret with keys `client_id` and `client_secret`. Use a customer-managed KMS key and do not place either value in `.env`.
+4. Run `npm run build`, `npm run diff`, review the user-pool client update, then run `npm run deploy`.
+
+The Cognito app callback URLs are `https://main.d2hu47dg9nhrd9.amplifyapp.com/auth/callback` and `http://localhost:3010/auth/callback`. The Google redirect URI is the Cognito `/oauth2/idpresponse` endpoint, not the application callback.
 
 ## Outputs
 

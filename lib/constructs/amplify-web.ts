@@ -35,6 +35,7 @@ export interface AmplifyWebProps {
   cognitoUserPoolId?: string;
   cognitoClientId?: string;
   cognitoRegion?: string;
+  cognitoDomain?: string;
 }
 
 /** prokuroWeb on AWS Amplify Hosting (SSR / WEB_COMPUTE). */
@@ -90,6 +91,9 @@ export class AmplifyWeb extends Construct {
     }
     if (props.cognitoRegion) {
       branchEnv.NEXT_PUBLIC_COGNITO_REGION = props.cognitoRegion;
+    }
+    if (props.cognitoDomain) {
+      branchEnv.NEXT_PUBLIC_COGNITO_DOMAIN = props.cognitoDomain;
     }
 
     const productionBranch = amplifyApp.addBranch(PRODUCTION_BRANCH, {
