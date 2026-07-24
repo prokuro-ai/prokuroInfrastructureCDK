@@ -80,6 +80,7 @@ export class AmplifyWeb extends Construct {
     const branchEnv: Record<string, string> = {};
     if (props.gatewayUrl) {
       branchEnv.GATEWAY_URL = props.gatewayUrl;
+      branchEnv.NEXT_PUBLIC_GATEWAY_URL = props.gatewayUrl;
     }
     if (props.cognitoUserPoolId) {
       branchEnv.NEXT_PUBLIC_COGNITO_USER_POOL_ID = props.cognitoUserPoolId;

@@ -20,6 +20,7 @@ export class BackendAlb extends Construct {
       vpc: props.vpc,
       internetFacing: true,
       loadBalancerName: 'prokuro-backend',
+      idleTimeout: Duration.seconds(180),
     });
 
     const listener = this.loadBalancer.addListener('HttpListener', {
