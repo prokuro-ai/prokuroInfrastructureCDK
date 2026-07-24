@@ -30,8 +30,17 @@ const verificationEmailBody = `
 <div style="margin:0;padding:40px 16px;background:#f4f6f9;font-family:Arial,sans-serif;color:#0f1b2d">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d6deea">
     <div style="padding:28px 40px;border-bottom:1px solid #d6deea">
-      <span style="display:inline-block;width:14px;height:14px;background:#0062ff;margin-right:8px"></span>
-      <strong style="font-size:20px">Prokuro<span style="color:#0062ff">.ai</span></strong>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td width="24" valign="middle">
+            <div style="width:14px;height:14px;background:#0062ff"></div>
+          </td>
+          <td valign="middle">
+            <strong style="font-size:20px;line-height:24px">Prokuro<span style="color:#0062ff">.ai</span></strong>
+          </td>
+          <td valign="middle" align="right" style="font-size:13px;color:#7a8598">Account security</td>
+        </tr>
+      </table>
     </div>
     <div style="padding:48px 40px">
       <h1 style="margin:0 0 20px;font-size:32px;line-height:1.2">Verify your email address</h1>
@@ -45,8 +54,11 @@ const verificationEmailBody = `
         Do not share this code with anyone. If you did not create this account, you can safely ignore this email.
       </p>
     </div>
-    <div style="padding:24px 40px;border-top:1px solid #d6deea;font-size:13px;color:#7a8598">
-      &copy; 2026 Prokuro.ai
+    <div style="padding:24px 40px;border-top:1px solid #d6deea;background:#f8fafc;font-size:13px;line-height:1.6;color:#7a8598">
+      <strong style="color:#4f5d73">Prokuro.ai</strong><br>
+      BOM intelligence for hardware teams.<br><br>
+      You received this email because an account was created using this address.<br>
+      &copy; 2026 Prokuro, Inc.
     </div>
   </div>
 </div>`;
