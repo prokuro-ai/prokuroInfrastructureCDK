@@ -108,7 +108,7 @@ export class CognitoAuth extends Construct {
       },
       userVerification: {
         emailStyle: VerificationEmailStyle.CODE,
-        emailSubject: 'Verify your Prokuro account',
+        emailSubject: 'Your Prokuro verification code: {####}',
         emailBody: verificationEmailBody,
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
