@@ -13,6 +13,11 @@ import {
 } from 'aws-cdk-lib/aws-cognito';
 import { EmailIdentity, Identity } from 'aws-cdk-lib/aws-ses';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import {
+  AwsCustomResource,
+  AwsCustomResourcePolicy,
+  PhysicalResourceId,
+} from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import {
   COGNITO_DOMAIN_PREFIX,
@@ -30,9 +35,13 @@ export class CognitoAuth extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    new EmailIdentity(this, 'SenderEmailIdentity', {
-      identity: Identity.email('noreply@prokuro.ai'),
-    });
+    const senderEmailIdentity = new EmailIdentity(
+      this,
+      'SenderEmailIdentity',
+      {
+        identity: Identity.email('noreply@prokuro.ai'),
+      },
+    );
 
     this.userPool = new UserPool(this, 'UserPool', {
       userPoolName: 'prokuro-users',
@@ -59,6 +68,75 @@ export class CognitoAuth extends Construct {
 
     const cfnUserPool = this.userPool.node.defaultChild as CfnUserPool;
     cfnUserPool.usernameConfiguration = { caseSensitive: false };
+    cfnUserPool.emailConfiguration = {
+      emailSendingAccount: 'COGNITO_DEFAULT',
+      sourceArn: senderEmailIdentity.emailIdentityArn,
+    };
+
+    const senderPolicyName = 'AllowCognitoToSend';
+    const senderPolicy = Stack.of(this).toJsonString({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: senderPolicyName,
+          Effect: 'Allow',
+          Principal: { Service: 'email.cognito-idp.amazonaws.com' },
+          Action: ['ses:SendEmail', 'ses:SendRawEmail'],
+          Resource: senderEmailIdentity.emailIdentityArn,
+          Condition: {
+            StringEquals: {
+              'aws:SourceAccount': Stack.of(this).account,
+            },
+            ArnLike: {
+              'aws:SourceArn': Stack.of(this).formatArn({
+                service: 'cognito-idp',
+                resource: 'userpool',
+                resourceName: '*',
+              }),
+            },
+          },
+        },
+      ],
+    });
+    const senderAuthorizationPolicy = new AwsCustomResource(
+      this,
+      'SenderAuthorizationPolicy',
+      {
+        onCreate: {
+          service: 'SESv2',
+          action: 'createEmailIdentityPolicy',
+          parameters: {
+            EmailIdentity: senderEmailIdentity.emailIdentityName,
+            PolicyName: senderPolicyName,
+            Policy: senderPolicy,
+          },
+          physicalResourceId: PhysicalResourceId.of(senderPolicyName),
+        },
+        onUpdate: {
+          service: 'SESv2',
+          action: 'updateEmailIdentityPolicy',
+          parameters: {
+            EmailIdentity: senderEmailIdentity.emailIdentityName,
+            PolicyName: senderPolicyName,
+            Policy: senderPolicy,
+          },
+        },
+        onDelete: {
+          service: 'SESv2',
+          action: 'deleteEmailIdentityPolicy',
+          parameters: {
+          EmailIdentity: senderEmailIdentity.emailIdentityName,
+          PolicyName: senderPolicyName,
+        },
+        ignoreErrorCodesMatching: 'NotFoundException',
+      },
+        policy: AwsCustomResourcePolicy.fromSdkCalls({
+          resources: [senderEmailIdentity.emailIdentityArn],
+        }),
+        installLatestAwsSdk: false,
+      },
+    );
+    cfnUserPool.node.addDependency(senderAuthorizationPolicy);
 
     const googleOAuthSecret = Secret.fromSecretNameV2(
       this,
