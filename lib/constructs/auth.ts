@@ -33,7 +33,7 @@ const verificationEmailBody = `
       <table role="presentation" cellpadding="0" cellspacing="0" align="center">
         <tr>
           <td width="46" valign="middle">
-            <img src="${WEB_BASE_URL}/favicon.png" width="36" height="36" alt="Prokuro" style="display:block;border:0">
+            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="36" height="36" alt="Prokuro" style="display:block;border:0">
           </td>
           <td valign="middle">
             <strong style="font-size:26px;line-height:30px">Prokuro<span style="color:#0062ff">.ai</span></strong>
@@ -57,14 +57,14 @@ const verificationEmailBody = `
       <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin-bottom:14px">
         <tr>
           <td width="32" valign="middle">
-            <img src="${WEB_BASE_URL}/favicon.png" width="24" height="24" alt="" style="display:block;border:0">
+            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="24" height="24" alt="" style="display:block;border:0">
           </td>
           <td valign="middle">
             <strong style="font-size:18px;line-height:22px;color:#0f1b2d">Prokuro<span style="color:#0062ff">.ai</span></strong>
           </td>
         </tr>
       </table>
-      AWS Gen AI Loft, 525 Market Street, 2nd Floor, San Francisco, CA 94105<br>
+      525 Market Street, 2nd Floor, San Francisco, CA 94105<br>
       &copy; 2026 Prokuro, Inc. All rights reserved.
     </div>
   </div>
