@@ -32,8 +32,8 @@ const verificationEmailBody = `
     <div style="padding:36px 48px 52px;text-align:center">
       <table role="presentation" cellpadding="0" cellspacing="0" align="center">
         <tr>
-          <td width="46" valign="middle">
-            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="36" height="36" alt="Prokuro" style="display:block;border:0">
+          <td width="34" valign="middle">
+            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="24" height="24" alt="Prokuro" style="display:block;border:0">
           </td>
           <td valign="middle">
             <strong style="font-size:26px;line-height:30px">Prokuro<span style="color:#0062ff">.ai</span></strong>
@@ -56,8 +56,8 @@ const verificationEmailBody = `
     <div style="margin:0 48px;padding:28px 0 36px;border-top:2px solid #98a3b6;text-align:center;font-size:12px;line-height:1.7;color:#7a8598">
       <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin-bottom:14px">
         <tr>
-          <td width="32" valign="middle">
-            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="24" height="24" alt="" style="display:block;border:0">
+          <td width="25" valign="middle">
+            <img src="${WEB_BASE_URL}/prokuro-mark.png" width="17" height="17" alt="" style="display:block;border:0">
           </td>
           <td valign="middle">
             <strong style="font-size:18px;line-height:22px;color:#0f1b2d">Prokuro<span style="color:#0062ff">.ai</span></strong>
@@ -108,7 +108,7 @@ export class CognitoAuth extends Construct {
       },
       userVerification: {
         emailStyle: VerificationEmailStyle.CODE,
-        emailSubject: 'Your Prokuro verification code: {####}',
+        emailSubject: 'Verify your Prokuro account',
         emailBody: verificationEmailBody,
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
