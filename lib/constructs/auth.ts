@@ -10,6 +10,7 @@ import {
   UserPoolClient,
   UserPoolClientIdentityProvider,
   UserPoolIdentityProviderGoogle,
+  VerificationEmailStyle,
 } from 'aws-cdk-lib/aws-cognito';
 import { EmailIdentity, Identity } from 'aws-cdk-lib/aws-ses';
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
@@ -24,6 +25,31 @@ import {
   GOOGLE_OAUTH_SECRET_NAME,
   WEB_BASE_URL,
 } from '../config';
+
+const verificationEmailBody = `
+<div style="margin:0;padding:40px 16px;background:#f4f6f9;font-family:Arial,sans-serif;color:#0f1b2d">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d6deea">
+    <div style="padding:28px 40px;border-bottom:1px solid #d6deea">
+      <span style="display:inline-block;width:14px;height:14px;background:#0062ff;margin-right:8px"></span>
+      <strong style="font-size:20px">Prokuro<span style="color:#0062ff">.ai</span></strong>
+    </div>
+    <div style="padding:48px 40px">
+      <h1 style="margin:0 0 20px;font-size:32px;line-height:1.2">Verify your email address</h1>
+      <p style="margin:0 0 32px;font-size:17px;line-height:1.6;color:#4f5d73">
+        Enter this verification code to finish creating your Prokuro account.
+      </p>
+      <div style="margin:0 0 32px;padding:24px;text-align:center;background:#eef4ff;border:1px solid #d6deea">
+        <strong style="font-family:Arial,sans-serif;font-size:36px;color:#0062ff">{####}</strong>
+      </div>
+      <p style="margin:0;font-size:15px;line-height:1.6;color:#4f5d73">
+        Do not share this code with anyone. If you did not create this account, you can safely ignore this email.
+      </p>
+    </div>
+    <div style="padding:24px 40px;border-top:1px solid #d6deea;font-size:13px;color:#7a8598">
+      &copy; 2026 Prokuro.ai
+    </div>
+  </div>
+</div>`;
 
 export class CognitoAuth extends Construct {
   readonly userPool: UserPool;
@@ -60,6 +86,11 @@ export class CognitoAuth extends Construct {
       passwordPolicy: { minLength: 8 },
       signInPolicy: {
         allowedFirstAuthFactors: { password: true, emailOtp: true },
+      },
+      userVerification: {
+        emailStyle: VerificationEmailStyle.CODE,
+        emailSubject: 'Verify your Prokuro account',
+        emailBody: verificationEmailBody,
       },
       accountRecovery: AccountRecovery.EMAIL_ONLY,
       mfa: Mfa.OFF,
