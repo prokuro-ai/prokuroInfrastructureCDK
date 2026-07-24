@@ -40,6 +40,7 @@ export class CognitoAuth extends Construct {
       'SenderEmailIdentity',
       {
         identity: Identity.email('noreply@prokuro.ai'),
+        mailFromDomain: 'main.prokuro.ai',
       },
     );
 
