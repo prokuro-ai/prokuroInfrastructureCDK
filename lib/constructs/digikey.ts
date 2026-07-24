@@ -1,7 +1,7 @@
 import { RemovalPolicy, SecretValue } from 'aws-cdk-lib';
 import { ISecret, Secret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
-import { DIGIKEY_SECRET_NAME } from '../config';
+import { DIGIKEY_SECRET_ARN, DIGIKEY_SECRET_NAME } from '../config';
 
 export interface DigiKeySecretProps {
   clientId?: string;
@@ -29,6 +29,10 @@ export class DigiKeySecret extends Construct {
       return;
     }
 
-    this.secret = Secret.fromSecretNameV2(this, 'Secret', DIGIKEY_SECRET_NAME);
+    this.secret = Secret.fromSecretCompleteArn(
+      this,
+      'Secret',
+      DIGIKEY_SECRET_ARN,
+    );
   }
 }

@@ -4,15 +4,18 @@ import {
   Cluster,
   ContainerDependencyCondition,
   ContainerImage,
+  CpuArchitecture,
   FargateService,
   FargateTaskDefinition,
   LogDrivers,
+  OperatingSystemFamily,
   Secret,
 } from 'aws-cdk-lib/aws-ecs';
 import { PolicyStatement, IRole } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
+import { PROKURO_SECRETS_KMS_KEY_ARN } from '../config';
 import { BackendImages } from './images';
 
 export interface FargateBackendProps {
@@ -47,6 +50,10 @@ export class FargateBackend extends Construct {
     const taskDefinition = new FargateTaskDefinition(this, 'TaskDef', {
       memoryLimitMiB: 2048,
       cpu: 512,
+      runtimePlatform: {
+        cpuArchitecture: CpuArchitecture.ARM64,
+        operatingSystemFamily: OperatingSystemFamily.LINUX,
+      },
     });
 
     this.taskRole = taskDefinition.taskRole;
@@ -55,6 +62,17 @@ export class FargateBackend extends Construct {
       new PolicyStatement({
         actions: ['secretsmanager:GetSecretValue'],
         resources: [props.digikeySecret.secretArn],
+      }),
+    );
+    taskDefinition.addToExecutionRolePolicy(
+      new PolicyStatement({
+        actions: ['kms:Decrypt'],
+        resources: [PROKURO_SECRETS_KMS_KEY_ARN],
+        conditions: {
+          StringEquals: {
+            'kms:ViaService': 'secretsmanager.us-west-2.amazonaws.com',
+          },
+        },
       }),
     );
 

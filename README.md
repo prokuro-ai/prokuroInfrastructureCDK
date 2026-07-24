@@ -44,7 +44,7 @@ CDK creates the Amplify app, connects `prokuro-ai/prokuroWeb` on branch `main`, 
 3. Store the OAuth client in `prokuro/google/oauth` as a Secrets Manager JSON secret with keys `client_id` and `client_secret`. Use a customer-managed KMS key and do not place either value in `.env`.
 4. Run `npm run build`, `npm run diff`, review the user-pool client update, then run `npm run deploy`.
 
-The Cognito app callback URLs are `https://main.d1kbe3qii40ozr.amplifyapp.com/auth/callback` and `http://localhost:3010/auth/callback`. The Google redirect URI is the Cognito `/oauth2/idpresponse` endpoint, not the application callback.
+The Cognito app callback URLs are `https://main.d2hu47dg9nhrd9.amplifyapp.com/auth/callback` and `http://localhost:3010/auth/callback`. The Google redirect URI is the Cognito `/oauth2/idpresponse` endpoint, not the application callback.
 
 ## Outputs
 
