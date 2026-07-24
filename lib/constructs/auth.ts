@@ -2,6 +2,7 @@ import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 import {
   AccountRecovery,
   CfnUserPool,
+  CfnUserPoolClient,
   Mfa,
   StringAttribute,
   UserPool,
@@ -40,12 +41,23 @@ export class CognitoAuth extends Construct {
 
     const cfnUserPool = this.userPool.node.defaultChild as CfnUserPool;
     cfnUserPool.usernameConfiguration = { caseSensitive: false };
+    cfnUserPool.addPropertyOverride('Policies.SignInPolicy', {
+      AllowedFirstAuthFactors: ['PASSWORD', 'EMAIL_OTP'],
+    });
 
     this.userPoolClient = this.userPool.addClient('WebClient', {
       userPoolClientName: 'prokuro-web',
       authFlows: { userPassword: true, userSrp: true },
       generateSecret: false,
     });
+
+    const cfnClient = this.userPoolClient.node.defaultChild as CfnUserPoolClient;
+    cfnClient.explicitAuthFlows = [
+      'ALLOW_REFRESH_TOKEN_AUTH',
+      'ALLOW_USER_AUTH',
+      'ALLOW_USER_PASSWORD_AUTH',
+      'ALLOW_USER_SRP_AUTH',
+    ];
 
     this.userPoolId = this.userPool.userPoolId;
     this.userPoolClientId = this.userPoolClient.userPoolClientId;
